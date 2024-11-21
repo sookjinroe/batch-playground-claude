@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Claude API Batch Tester</title>
+    <title>Claude API Test</title>
     <style>
         body { max-width: 800px; margin: 20px auto; padding: 0 20px; }
         .form-group { margin-bottom: 15px; }
         textarea, input { width: 100%; margin: 5px 0; }
-        textarea { height: 150px; }
     </style>
 </head>
 <body>
-    <h1>Claude API Batch Tester</h1>
+    <h1>Claude API Test</h1>
     
     <div class="form-group">
         <label>API Key:</label>
@@ -18,34 +17,14 @@
     </div>
     
     <div class="form-group">
-        <label>System Prompt:</label>
-        <textarea id="systemPrompt"></textarea>
+        <label>Test Message:</label>
+        <textarea id="message"></textarea>
     </div>
     
-    <div class="form-group">
-        <label>Temperature:</label>
-        <input type="number" id="temperature" min="0" max="1" step="0.1" value="0.7">
-    </div>
-    
-    <div class="form-group">
-        <label>Max Tokens:</label>
-        <input type="number" id="maxTokens" value="1000">
-    </div>
-    
-    <div class="form-group">
-        <label>Messages CSV:</label>
-        <input type="file" id="csvFile" accept=".csv">
-    </div>
-    
-    <button onclick="runBatch()">Run Batch</button>
+    <button onclick="testAPI()">Test API</button>
     
     <div id="status"></div>
-    <div id="downloadSection" style="display: none;">
-        <button id="downloadBtn">결과 다운로드</button>
-    </div>
-
-   
-    <script src="script.js"></script>
-
+    <pre id="result"></pre>
 </body>
+<script src="script.js"></script>
 </html>
