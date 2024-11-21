@@ -42,7 +42,7 @@ async function callClaudeAPI(message, apiKey, systemPrompt, temperature, maxToke
             'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-            model: 'claude-3-opus-20240229',
+            model: 'claude-3-sonnet-20241022',
             max_tokens: maxTokens,
             temperature: temperature,
             system: systemPrompt,
@@ -54,6 +54,7 @@ async function callClaudeAPI(message, apiKey, systemPrompt, temperature, maxToke
 }
 
 // 배치 실행
+// 배치 실행
 async function runBatch() {
     const status = document.getElementById('status');
     const apiKey = document.getElementById('apiKey').value;
@@ -61,19 +62,19 @@ async function runBatch() {
     const temperature = parseFloat(document.getElementById('temperature').value);
     const maxTokens = parseInt(document.getElementById('maxTokens').value);
     const csvFile = document.getElementById('csvFile').files[0];
-
+ 
     if (!apiKey || !csvFile) {
         status.textContent = 'API Key와 CSV 파일을 모두 입력해주세요.';
         return;
     }
-
+ 
     try {
         saveSettings();
         status.textContent = '처리 중...';
         
         const messages = await readCSV(csvFile);
         const results = [];
-
+ 
         for (let i = 0; i < messages.length; i++) {
             status.textContent = `처리 중... (${i + 1}/${messages.length})`;
             
@@ -99,21 +100,28 @@ async function runBatch() {
                 });
             }
         }
-
-        // CSV 다운로드
+ 
+        // CSV 생성
         const csv = results.map(r => 
             `${r.timestamp},${JSON.stringify(r.message)},${JSON.stringify(r.response)}`
         ).join('\n');
         
-        const blob = new Blob(['Timestamp,Message,Response\n' + csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `batch_results_${new Date().toISOString()}.csv`;
-        a.click();
-
-        status.textContent = '완료!';
+        // 다운로드 버튼 표시
+        const downloadSection = document.getElementById('downloadSection');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        downloadBtn.onclick = () => {
+            const blob = new Blob(['Timestamp,Message,Response\n' + csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `batch_results_${new Date().toISOString()}.csv`;
+            a.click();
+        };
+ 
+        downloadSection.style.display = 'block';
+        status.textContent = '처리 완료! 다운로드 버튼을 클릭하세요.';
     } catch (error) {
         status.textContent = `에러 발생: ${error.message}`;
     }
-}
+ }
