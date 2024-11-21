@@ -217,17 +217,14 @@ async function startBatchProcess() {
 
 // JSONL 파일 내용 생성
 function createBatchJSONL() {
-    const requests = inputContents.map((content, index) => ({
+    const requests = inputContents.map((content) => ({
         custom_id: content.id,
         params: {
             model: document.getElementById('model').value,
             max_tokens: parseInt(document.getElementById('max-tokens').value) || 1000,
             temperature: parseFloat(document.getElementById('temperature').value) || 0,
+            system: document.getElementById('system-message').value,
             messages: [
-                {
-                    role: "system",
-                    content: document.getElementById('system-message').value
-                },
                 {
                     role: "user",
                     content: content.user || ''
