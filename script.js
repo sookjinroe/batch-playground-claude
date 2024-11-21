@@ -193,7 +193,7 @@ async function startBatchProcess() {
         const requests = createBatchJSONL();
         downloadBtn.disabled = true;
 
-        const response = await fetch('https://api.anthropic.com/v1/messages/batches', {
+        const response = await fetch('https://api.anthropic.com/beta/messages/batches', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -240,14 +240,13 @@ function createBatchJSONL() {
 async function processBatchResults(batchResponse) {
     try {
         console.log('Batch response:', batchResponse);
-        const results = batchResponse.requests;  // OpenAI와 다른 응답 구조
+        const results = batchResponse.requests;
 
         results.forEach(result => {
-            // Anthropic 응답 구조에 맞게 수정
-            const messageContent = result.status === 'completed'
-                ? result.result.content[0].text
-                : `Error: ${result.error?.message || 'Unknown error'}`;
-            outputMap.set(result.custom_id, messageContent);  // custom_id가 실제 id로 변경됨
+            const messageContent = result.result.type === 'succeeded'
+                ? result.result.message.content[0].text
+                : `Error: ${result.result?.error || 'Failed to process'}`;
+            outputMap.set(result.custom_id, messageContent);
         });
 
         // 나머지 코드는 동일
