@@ -193,12 +193,13 @@ async function startBatchProcess() {
         const requests = createBatchJSONL();
         downloadBtn.disabled = true;
 
-        const response = await fetch('https://api.anthropic.com/beta/messages/batches', {
+        const response = await fetch('https://api.anthropic.com/v1/messages/batches', {  // beta가 아닌 v1
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'x-api-key': apiKey.value,
-                'anthropic-version': '2023-06-01'
+                'anthropic-version': '2023-06-01',
+                'anthropic-beta': 'message-batches-2024-09-24'  // 이 헤더가 필요했네요!
             },
             body: JSON.stringify({ requests })
         });
