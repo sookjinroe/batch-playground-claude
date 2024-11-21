@@ -79,8 +79,8 @@
         }
 
         async function processCsvContent(csvContent, systemPrompt, model, maxTokens, temperature, apiKey) {
-            const rows = csvContent.split('\n').filter(row => row.trim() !== '');
-            const headers = rows[0].split(',');
+            const rows = parseCsv(csvContent);
+            const headers = rows[0];
             const idIndex = headers.indexOf('id');
             const userIndex = headers.indexOf('user');
 
@@ -91,7 +91,7 @@
 
             let outputCsv = '\ufeffid,user,assistant\n'; // Add BOM for UTF-8 to prevent Excel from breaking the characters
             for (let i = 1; i < rows.length; i++) {
-                const cells = rows[i].split(',');
+                const cells = rows[i];
                 const userMessage = cells[userIndex];
                 const id = cells[idIndex];
 
@@ -102,6 +102,16 @@
             }
 
             downloadCsv(outputCsv);
+        }
+
+        function parseCsv(csvContent) {
+            const rows = [];
+            const lines = csvContent.split('\n').filter(row => row.trim() !== '');
+            for (const line of lines) {
+                const cells = line.match(/("[^"]*"|[^,]+)/g).map(cell => cell.replace(/^"|"$/g, '').replace(/""/g, '"'));
+                rows.push(cells);
+            }
+            return rows;
         }
 
         async function getAssistantResponse(systemPrompt, userMessage, model, maxTokens, temperature, apiKey) {
