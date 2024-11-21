@@ -60,7 +60,7 @@
             if (file.name.endsWith('.csv')) {
                 reader.onload = async function(e) {
                     const text = e.target.result;
-                    processCsvContent(text, systemPrompt, model, maxTokens, temperature, apiKey);
+                    await processCsvContent(text, systemPrompt, model, maxTokens, temperature, apiKey);
                 };
                 reader.readAsText(file, 'UTF-8');
             } else if (file.name.endsWith('.xlsx')) {
@@ -70,7 +70,7 @@
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
                     const csv = XLSX.utils.sheet_to_csv(worksheet);
-                    processCsvContent(csv, systemPrompt, model, maxTokens, temperature, apiKey);
+                    await processCsvContent(csv, systemPrompt, model, maxTokens, temperature, apiKey);
                 };
                 reader.readAsArrayBuffer(file);
             } else {
@@ -98,7 +98,8 @@
                 if (!userMessage) continue;
 
                 const assistantResponse = await getAssistantResponse(systemPrompt, userMessage, model, maxTokens, temperature, apiKey);
-                outputCsv += `${id},${userMessage},${assistantResponse}\n`;
+                outputCsv += `${id},"${userMessage}","${assistantResponse}"
+`;
             }
 
             downloadCsv(outputCsv);
@@ -124,11 +125,19 @@
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
+                }
+
                 const data = await response.json();
-                return data.completion.messages[data.completion.messages.length - 1].content;
+                if (data.completion && data.completion.messages) {
+                    return data.completion.messages[data.completion.messages.length - 1].content;
+                } else {
+                    return 'Error: Invalid response format';
+                }
             } catch (error) {
                 console.error('Error fetching assistant response:', error);
-                return 'Error';
+                return `Error: ${error.message}`;
             }
         }
 
