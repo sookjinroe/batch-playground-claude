@@ -69,7 +69,7 @@
                     const workbook = XLSX.read(data, { type: 'array' });
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
-                    const csv = XLSX.utils.sheet_to_csv(worksheet);
+                    const csv = XLSX.utils.sheet_to_csv(worksheet, { FS: ',', RS: '\n', strip: false });
                     await processCsvContent(csv, systemPrompt, model, maxTokens, temperature, apiKey);
                 };
                 reader.readAsArrayBuffer(file);
@@ -79,7 +79,7 @@
         }
 
         async function processCsvContent(csvContent, systemPrompt, model, maxTokens, temperature, apiKey) {
-            const rows = csvContent.split('\n');
+            const rows = csvContent.split('\n').filter(row => row.trim() !== '');
             const headers = rows[0].split(',');
             const idIndex = headers.indexOf('id');
             const userIndex = headers.indexOf('user');
@@ -89,7 +89,7 @@
                 return;
             }
 
-            let outputCsv = 'id,user,assistant\n';
+            let outputCsv = '\ufeffid,user,assistant\n'; // Add BOM for UTF-8 to prevent Excel from breaking the characters
             for (let i = 1; i < rows.length; i++) {
                 const cells = rows[i].split(',');
                 const userMessage = cells[userIndex];
@@ -98,8 +98,7 @@
                 if (!userMessage) continue;
 
                 const assistantResponse = await getAssistantResponse(systemPrompt, userMessage, model, maxTokens, temperature, apiKey);
-                outputCsv += `${id},"${userMessage}","${assistantResponse}"
-`;
+                outputCsv += `${id},"${userMessage.replace(/"/g, '""')}","${assistantResponse.replace(/"/g, '""')}"\n`;
             }
 
             downloadCsv(outputCsv);
@@ -107,21 +106,18 @@
 
         async function getAssistantResponse(systemPrompt, userMessage, model, maxTokens, temperature, apiKey) {
             try {
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                const response = await fetch('http://localhost:3000/proxy', { // Use local proxy server
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        "model": model,
-                        "max_tokens": maxTokens,
-                        "temperature": temperature,
-                        "messages": [
-                            { "role": "system", "content": systemPrompt },
-                            { "role": "user", "content": userMessage }
-                        ]
+                        apiKey,
+                        model,
+                        maxTokens,
+                        temperature,
+                        systemPrompt,
+                        userMessage
                     })
                 });
 
