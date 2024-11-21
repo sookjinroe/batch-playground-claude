@@ -9,7 +9,7 @@ app = Flask(__name__)
 # Set your Anthropoc API key here
 API_KEY = "your_api_key"
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
     return '''
         <h1>Upload File</h1>
