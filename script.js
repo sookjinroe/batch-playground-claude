@@ -36,7 +36,7 @@ function saveSettings() {
 // 설정 불러오기 함수
 function loadSettings() {
     elements.apiKey.value = localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
-    elements.model.value = localStorage.getItem(STORAGE_KEYS.MODEL) || 'gpt-3.5-turbo-0125';
+    elements.model.value = localStorage.getItem(STORAGE_KEYS.MODEL) || 'claude-3-sonnet-20241022';
     elements.temperature.value = localStorage.getItem(STORAGE_KEYS.TEMPERATURE) || '0.7';
     elements.maxTokens.value = localStorage.getItem(STORAGE_KEYS.MAX_TOKENS) || '1000';
     
