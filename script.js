@@ -218,10 +218,11 @@ async function startBatchProcess() {
 // JSONL 파일 내용 생성
 function createBatchJSONL() {
     const requests = inputContents.map((content, index) => ({
-        custom_id: content.id,  // request-${index + 1} 대신 실제 id 사용
+        custom_id: content.id,
         params: {
             model: document.getElementById('model').value,
             max_tokens: parseInt(document.getElementById('max-tokens').value) || 1000,
+            temperature: parseFloat(document.getElementById('temperature').value) || 0,
             messages: [
                 {
                     role: "system",
@@ -235,7 +236,7 @@ function createBatchJSONL() {
         }
     }));
 
-    return requests;  // JSONL 문자열이 아닌 객체 배열 반환
+    return requests;
 }
 
 // 배치 결과 처리 및 CSV 다운로드
