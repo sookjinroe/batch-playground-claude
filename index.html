@@ -1,70 +1,44 @@
-import anthropic
-import pandas as pd
-import csv
-from flask import Flask, request, send_file
-import os
-
-app = Flask(__name__)
-
-# Set your Anthropoc API key here
-API_KEY = "your_api_key"
-
-@app.route('/', methods=['GET'])
-def index():
-    return '''
-        <h1>Upload File</h1>
-        <form action="/process" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" accept=".xlsx"><br>
-            <label for="system">System Prompt:</label>
-            <input type="text" id="system" name="system" required><br>
-            <label for="max_tokens">Max Tokens:</label>
-            <input type="number" id="max_tokens" name="max_tokens" value="1000" required><br>
-            <label for="temperature">Temperature:</label>
-            <input type="number" step="0.1" id="temperature" name="temperature" value="0" required><br>
-            <label for="model">Model:</label>
-            <input type="text" id="model" name="model" value="claude-3-5-sonnet-20241022" required><br><br>
-            <input type="submit" value="Upload and Process">
-        </form>
-    '''
-
-@app.route('/process', methods=['POST'])
-def process():
-    file = request.files['file']
-    system_prompt = request.form['system']
-    max_tokens = int(request.form['max_tokens'])
-    temperature = float(request.form['temperature'])
-    model = request.form['model']
-
-    # Save uploaded file
-    file_path = "/tmp/" + file.filename
-    file.save(file_path)
-
-    # Read the uploaded Excel file
-    df = pd.read_excel(file_path)
-
-    # Create an instance of the Anthropoc client
-    client = anthropic.Anthropic(api_key=API_KEY)
-
-    # Prepare output CSV file
-    output_file_path = "/tmp/output.csv"
-    with open(output_file_path, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['id', 'user', 'assistant'])
-
-        # Iterate through the rows in the dataframe
-        for index, row in df.iterrows():
-            user_message = row['user']
-            message = client.completions.create(
-                model=model,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                prompt=f"{system_prompt}\n\n{user_message}"
-            )
-            assistant_reply = message.completion.strip()
-            writer.writerow([row['id'], user_message, assistant_reply])
-
-    # Send the result file to user
-    return send_file(output_file_path, as_attachment=True)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Claude API Batch Tester</title>
+    <style>
+        body { max-width: 800px; margin: 20px auto; padding: 0 20px; }
+        .form-group { margin-bottom: 15px; }
+        textarea, input { width: 100%; margin: 5px 0; }
+        textarea { height: 150px; }
+    </style>
+</head>
+<body>
+    <h1>Claude API Batch Tester</h1>
+    
+    <div class="form-group">
+        <label>API Key:</label>
+        <input type="password" id="apiKey">
+    </div>
+    
+    <div class="form-group">
+        <label>System Prompt:</label>
+        <textarea id="systemPrompt"></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label>Temperature:</label>
+        <input type="number" id="temperature" min="0" max="1" step="0.1" value="0.7">
+    </div>
+    
+    <div class="form-group">
+        <label>Max Tokens:</label>
+        <input type="number" id="maxTokens" value="1000">
+    </div>
+    
+    <div class="form-group">
+        <label>Messages CSV:</label>
+        <input type="file" id="csvFile" accept=".csv">
+    </div>
+    
+    <button onclick="runBatch()">Run Batch</button>
+    
+    <div id="status"></div>
+</body>
+</html>
