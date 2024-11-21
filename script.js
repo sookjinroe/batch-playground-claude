@@ -23,9 +23,16 @@ async function testAPI() {
                 model: 'claude-3-sonnet-20241022',
                 max_tokens: 1000,
                 temperature: 0.7,
+                system: "You are a helpful assistant.", // system 필드 추가
                 messages: [{ role: 'user', content: message }]
             })
         });
+
+        if (!response.ok) {
+            // API 에러 응답을 더 자세히 보기 위해
+            const errorData = await response.json();
+            throw new Error(`API Error: ${JSON.stringify(errorData)}`);
+        }
 
         const data = await response.json();
         result.textContent = JSON.stringify(data, null, 2);
